@@ -1,131 +1,160 @@
-Data Analysis with Python - Coursera Project
-This repository contains a Python script for performing data analysis on a synthetic real estate dataset. The script includes data generation, data cleaning, exploratory data analysis (EDA), and predictive modeling using linear regression and ridge regression.
+# Real Estate Data Analysis
 
-Table of Contents
-Project Overview
+## Overview
+This project involves analyzing a real estate dataset using Python and various data science libraries. The tasks include data preprocessing, visualization, and machine learning models to predict house prices based on different features.
 
-Installation
+## Dataset
+The dataset contains various attributes related to houses, such as price, square footage, number of floors, waterfront presence, and more.
 
-Usage
-
-Data Generation
-
-Exploratory Data Analysis (EDA)
-
-Predictive Modeling
-
-Results
-
-License
-
-Project Overview
-This project demonstrates the use of Python for data analysis and predictive modeling. The dataset used is synthetically generated and includes features such as price, square footage, number of bedrooms, and more. The analysis includes data cleaning, visualization, and building predictive models to estimate house prices.
-
-Installation
-To run this project, you need to have Python installed along with the following libraries:
-
-pandas
-
-numpy
-
-seaborn
-
-matplotlib
-
-scikit-learn
-
-You can install these libraries using pip:
-
-bash
-Copy
+## Requirements
+Ensure you have the following Python libraries installed:
+```bash
 pip install pandas numpy seaborn matplotlib scikit-learn
-Usage
-Clone the repository:
+```
 
-bash
-Copy
-git clone https://github.com/your-username/data-analysis-with-python-coursera.git
-Navigate to the project directory:
+## Steps and Code
 
-bash
-Copy
-cd data-analysis-with-python-coursera
-Run the Python script:
+### 1. Display the Data Types of Each Column
+```python
+import pandas as pd
 
-bash
-Copy
-python data_analyses_with_python_coursera_.py
-Data Generation
-The script generates a synthetic dataset with 1000 rows and the following columns:
+# Load your dataset (replace 'file.csv' with the actual filename)
+df = pd.read_csv('file.csv')
 
-id: Unique identifier for each row.
+# Display data types
+print(df.dtypes)
+```
 
-Unnamed: 0: Another unique identifier.
+### 2. Drop "id" and "Unnamed: 0" Columns and Show Statistical Summary
+```python
+# Drop columns
+df.drop(["id", "Unnamed: 0"], axis=1, inplace=True)
 
-price: Price of the house.
+# Display statistical summary
+print(df.describe())
+```
 
-sqft_living: Square footage of the living area.
+### 3. Count Unique Floor Values
+```python
+# Count unique floor values and convert to DataFrame
+floor_counts = df['floors'].value_counts().to_frame()
+print(floor_counts)
+```
 
-sqft_above: Square footage above ground.
+### 4. Boxplot for Waterfront vs. Price Outliers
+```python
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-floors: Number of floors.
+# Create boxplot
+plt.figure(figsize=(8, 6))
+sns.boxplot(x="waterfront", y="price", data=df)
 
-waterfront: Whether the house has a waterfront view (0 or 1).
+# Show plot
+plt.show()
+```
 
-lat: Latitude of the house location.
+### 5. Regression Plot for sqft_above vs. Price Correlation
+```python
+# Create regression plot
+plt.figure(figsize=(8, 6))
+sns.regplot(x="sqft_above", y="price", data=df)
 
-bedrooms: Number of bedrooms.
+# Show plot
+plt.show()
+```
 
-sqft_basement: Square footage of the basement.
+### 6. Fit Linear Regression Model for sqft_living
+```python
+from sklearn.linear_model import LinearRegression
 
-view: Quality of the view (0 to 4).
+# Define X and y
+X = df[["sqft_living"]]
+y = df["price"]
 
-bathrooms: Number of bathrooms.
+# Fit model
+model = LinearRegression()
+model.fit(X, y)
 
-sqft_living15: Average square footage of living area for 15 nearest neighbors.
+# Calculate R^2
+r2 = model.score(X, y)
+print(f"R^2: {r2}")
+```
 
-grade: Overall grade of the house (1 to 12).
+### 7. Fit Linear Regression Model Using Multiple Features
+```python
+# Define features
+features = ["floors", "waterfront", "lat", "bedrooms", "sqft_basement",
+            "view", "bathrooms", "sqft_living15", "sqft_above", "grade", "sqft_living"]
 
-The dataset is saved as real_estate_data.csv.
+X = df[features]
+y = df["price"]
 
-Exploratory Data Analysis (EDA)
-The script performs the following EDA tasks:
+# Fit model
+model = LinearRegression()
+model.fit(X, y)
 
-Data Cleaning: Drops unnecessary columns (id and Unnamed: 0).
+# Calculate R^2
+r2 = model.score(X, y)
+print(f"R^2: {r2}")
+```
 
-Statistical Summary: Displays summary statistics for the dataset.
+### 8. Create a Pipeline with Scaling, Polynomial Transform, and Linear Regression
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 
-Value Counts: Counts the number of houses with different numbers of floors.
+# Create pipeline
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('poly', PolynomialFeatures(degree=2)),
+    ('model', LinearRegression())
+])
 
-Visualization:
+# Fit pipeline
+pipeline.fit(X, y)
 
-Boxplot of house prices based on waterfront view.
+# Calculate R^2
+r2 = pipeline.score(X, y)
+print(f"R^2: {r2}")
+```
 
-Scatter plot with regression line for square footage above ground vs. price.
+### 9. Ridge Regression (Regularization = 0.1)
+```python
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import train_test_split
 
-Predictive Modeling
-The script builds and evaluates several predictive models:
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-Simple Linear Regression: Predicts house prices based on square footage of the living area.
+# Fit Ridge model
+ridge = Ridge(alpha=0.1)
+ridge.fit(X_train, y_train)
 
-Multiple Linear Regression: Predicts house prices using multiple features.
+# Calculate R^2 on test data
+r2 = ridge.score(X_test, y_test)
+print(f"R^2: {r2}")
+```
 
-Polynomial Regression: Uses polynomial features to improve the model.
+### 10. Perform Second-Order Polynomial Transform and Fit Ridge Regression
+```python
+# Apply polynomial transformation
+poly = PolynomialFeatures(degree=2)
+X_train_poly = poly.fit_transform(X_train)
+X_test_poly = poly.transform(X_test)
 
-Ridge Regression: Regularized linear regression to prevent overfitting.
+# Fit Ridge model
+ridge_poly = Ridge(alpha=0.1)
+ridge_poly.fit(X_train_poly, y_train)
 
-The R² score is used to evaluate the performance of each model.
+# Calculate R^2 on test data
+r2 = ridge_poly.score(X_test_poly, y_test)
+print(f"R^2: {r2}")
+```
 
-Results
-The R² scores for the models are as follows:
+## Conclusion
+This project demonstrates various data analysis techniques, visualization methods, and machine learning models to analyze and predict house prices.
 
-Simple Linear Regression: R² = [value]
+## License
+This project is for educational purposes only. Feel free to modify and use it for learning!
 
-Multiple Linear Regression: R² = [value]
-
-Polynomial Regression: R² = [value]
-
-Ridge Regression: R² = [value]
-
-License
-This project is licensed under the MIT License. See the LICENSE file for details.
